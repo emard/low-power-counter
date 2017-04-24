@@ -28,17 +28,29 @@ struct record EEMEM memory[N_RECORDS]; // storage in EEPROM
 
 struct record counter[1]; // one record as counter in RAM
 
+void record_read(struct record *r, uint8_t i)
+{
+  eeprom_read_block(r, &(memory[i % N_RECORDS]), sizeof(struct record));
+}
+
+void record_write(struct record *r, uint8_t i)
+{
+  eeprom_update_block(r, &(memory[i % N_RECORDS]), sizeof(struct record));
+}
+
 // find free data in eeprom
 // that's first data which has 0
 // also read the last non-free record
 uint8_t find_free_record(struct record *r)
 {
   uint8_t i;
+  uint8_t nonzero_found = 0;
   struct record data[1];
   for(i = 0; i < N_RECORDS; i++)
   {
     uint8_t j, z = N_CHANNELS;
-    eeprom_read_block(data, &(memory[i]), sizeof(struct record));
+    // eeprom_read_block(data, &(memory[i % N_RECORDS]), sizeof(struct record));
+    record_read(data, i);
     for(j = 0; j < N_CHANNELS; j++)
     {
       if(data->c[j] == 0)
@@ -47,22 +59,19 @@ uint8_t find_free_record(struct record *r)
     // all values zero -> found new free entry
     if(z == 0)
     {
+      if(nonzero_found == 1)
+      {
+        return i;
+      }
+    }
+    else
+    {
+      nonzero_found = 1;
       if(r)
         memcpy(r, data, sizeof(struct record));
-      return i;
     }
   }
   return 0;
-}
-
-void record_read(struct record *r, uint8_t i)
-{
-  eeprom_read_block(r, &(memory[i]), sizeof(struct record));
-}
-
-void record_write(struct record *r, uint8_t i)
-{
-  eeprom_update_block(r, &(memory[i]), sizeof(struct record));
 }
 
 // interrupt service routine: PIN CHANGE 0 interrupt
