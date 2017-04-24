@@ -1,5 +1,6 @@
 #include <avr/io.h> 
 #include <stdlib.h>
+#include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
 
@@ -79,12 +80,6 @@ void main()
 
  DDRB = t;
  
- set_sleep_mode(
-   1*SLEEP_MODE_IDLE
- | 1*SLEEP_MODE_ADC
- | 1*SLEEP_MODE_PWR_DOWN
- | 1*SLEEP_MODE_STANDBY
- );
 
  for(;;)
  {
@@ -95,6 +90,21 @@ void main()
      t ^= LED;
      for(i = 0; i < 10000; i++);
    }
-   sleep_enable();
+
+   set_sleep_mode(
+     1*SLEEP_MODE_IDLE
+   | 1*SLEEP_MODE_ADC
+   | 1*SLEEP_MODE_PWR_DOWN
+   | 1*SLEEP_MODE_STANDBY
+   );
+   cli();
+   if(1 == 1)
+   {
+     sleep_enable();
+     sei();
+     sleep_cpu();
+     sleep_disable();
+   }
+   sei();
  }
 }
