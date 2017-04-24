@@ -103,7 +103,7 @@ void main()
      1*SLEEP_MODE_IDLE
    | 1*SLEEP_MODE_ADC
    | 1*SLEEP_MODE_PWR_DOWN
-   | 1*SLEEP_MODE_STANDBY
+   // | 1*SLEEP_MODE_STANDBY // not available on attiny85
    );
    cli();
    if(1 == 1)
