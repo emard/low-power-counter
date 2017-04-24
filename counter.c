@@ -30,14 +30,15 @@ struct record counter[1]; // one record as counter in RAM
 
 // find free data in eeprom
 // that's first data which has 0
-uint8_t find_free_record()
+// also read the last non-free record
+uint8_t find_free_record(struct record *r)
 {
   uint8_t i;
   struct record data[1];
   for(i = 0; i < N_RECORDS; i++)
   {
     int j, z = N_CHANNELS;
-    eeprom_read_block(data, memory+i, sizeof(struct record));
+    eeprom_read_block(data, &(memory[i]), sizeof(struct record));
     for(j = 0; j < N_CHANNELS; j++)
     {
       if(data->c == 0)
@@ -45,19 +46,23 @@ uint8_t find_free_record()
     }
     // all values zero -> found new free entry
     if(z == 0)
+    {
+      if(r)
+        memcpy(r, data, sizeof(struct record));
       return i;
+    }
   }
   return 0;
 }
 
 void record_read(struct record *r, uint8_t i)
 {
-  eeprom_read_block(r, memory+i, sizeof(struct record));
+  eeprom_read_block(r, &(memory[i]), sizeof(struct record));
 }
 
 void record_write(struct record *r, uint8_t i)
 {
-  eeprom_update_block(r, memory+i, sizeof(struct record));
+  eeprom_update_block(r, &(memory[i]), sizeof(struct record));
 }
 
 // interrupt service routine: PIN CHANGE 0 interrupt
@@ -65,9 +70,11 @@ void record_write(struct record *r, uint8_t i)
 // there also exists PIN CHANGE 1 interrupt which
 // covers another 4 input pins PB 0-3
 // on attiny85 only PIN CHANGE 0 exists
+#if 1
 ISR(PCINT0_vect)
 {
 }
+#endif
 
 void main()
 {
@@ -75,8 +82,9 @@ void main()
  unsigned char t = LED;
  
  uint8_t j, k;
- j = find_free_record();
- record_read(counter, j);
+ j = find_free_record(counter);
+ // record_read(counter, j);
+ counter->c[0]++; // ncrement it
  record_write(counter, j);
  // next position
  if(++j >= N_RECORDS)
@@ -88,12 +96,11 @@ void main()
  record_write(counter, j);
 
  DDRB = t;
- 
 
  for(;;)
  {
    // blink 10 times
-   for(j = 0; j < 10; j++)
+   for(j = 0; j < 11; j++)
    {
      PORTB = t;
      t ^= LED;
@@ -101,12 +108,14 @@ void main()
        asm("nop");
    }
 
+   #if 1
    set_sleep_mode(
      1*SLEEP_MODE_IDLE
    | 1*SLEEP_MODE_ADC
-   | 1*SLEEP_MODE_PWR_DOWN
+   | 0*SLEEP_MODE_PWR_DOWN
    // | 1*SLEEP_MODE_STANDBY // not available on attiny85
    );
+   #endif
    cli();
    if(1 == 1)
    {
