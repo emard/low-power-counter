@@ -43,8 +43,7 @@ F_PLL = 64000000
 # 32k bootloader at 0x7800
 START_ADDRESS=0x0
 
-# DEFINES = -DF_CPU=$(F_CPU) -DSTART_ADDRESS=$(START_ADDRESS) -D_BOARD_MAGNIFIER162_
-DEFINES = -DF_CPU=$(F_CPU) -DF_PLL=$(F_PLL) -DSTART_ADDRESS=$(START_ADDRESS) -D_BOARD_MAGNIFIER316_
+DEFINES = -DF_CPU=$(F_CPU) -DF_PLL=$(F_PLL) -DSTART_ADDRESS=$(START_ADDRESS)
 
 # attention: writing wrong fuses or locks can prevent further programming of the device
 # attention: different MCU models have different fuses and locks!

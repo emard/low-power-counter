@@ -115,5 +115,6 @@ void main()
      sleep_disable();
    }
    sei();
+   for(;;);
  }
 }
