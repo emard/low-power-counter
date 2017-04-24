@@ -6,6 +6,8 @@
 
 #define LED (1<<PB1)
 
+#define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
+
 enum 
 { 
   EEPROM_BYTES = 512, // eeprom size in bytes, see datasheet
@@ -118,12 +120,8 @@ void main()
    }
 
    #if 1
-   set_sleep_mode(
-     1*SLEEP_MODE_IDLE
-   | 1*SLEEP_MODE_ADC
-   | 1*SLEEP_MODE_PWR_DOWN
-   // | 1*SLEEP_MODE_STANDBY // not available on attiny85
-   );
+   ADC_DISABLE();
+   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
    #endif
    cli();
    if(1 == 1)
