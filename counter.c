@@ -60,6 +60,14 @@ void record_write(struct record *r, uint8_t i)
   eeprom_update_block(r, memory+i, sizeof(struct record));
 }
 
+// interrupt service routine: PIN CHANGE 0 interrupt
+// it covers 8 input pins PA 0-7
+// there also exists PIN CHANGE 1 interrupt which
+// covers another 4 input pins PB 0-3
+ISR(PCINT0_vect)
+{
+}
+
 void main()
 {
  int i;
