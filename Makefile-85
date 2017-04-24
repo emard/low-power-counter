@@ -10,7 +10,7 @@ AVRTTY=avrdoper
 #MCU=atmega8515
 #MCU=atmega162
 #MCU=attiny84
-MCU=attiny84
+MCU=attiny85
 
 FUSEOPT_T84 = -U hfuse:w:0xf0:m -U lfuse:w:0x60:m  -U efuse:w:0xfe:m
 FUSEOPT=$(FUSEOPT_T84)
@@ -26,12 +26,13 @@ LOCKOPT = $(LOCKOPT_BOOT_PROTECT)
 
 #$PRGPAR=-dprog=dasa -dlpt=$(AVRTTY) -dt_sck=0 -dt_wd_flash=3000 -dvoltage=3.0 -dt_reset=1500000
 #PRGPAR=-dprog=dasa -dlpt=$(AVRTTY) -dt_sck=50 -dt_wd_flash=10000000 -dvoltage=3.0
-#AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c stk500v2 -y
-#AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c stk500 -y -u
-AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c stk500hvsp -y -u
-#AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c dasa -y -u
+#AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c stk500v2
+#AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c stk500 -u
+AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c stk500hvsp -u
+#AVRDUDEPAR=-p $(MCU) -P $(AVRTTY) -c dasa -u
 
 UPLOAD_COUNTER=~/src/avr/.upload_counter
+
 #OPTIMIZE=-O6
 #OPTIMIZE=-Os
 #OPTIMIZE=-Os -fpack-struct -fshort-enums -ffreestanding --combine -fno-inline-small-functions -fno-split-wide-types -fno-tree-scev-cprop

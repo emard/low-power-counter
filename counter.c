@@ -61,9 +61,10 @@ void record_write(struct record *r, uint8_t i)
 }
 
 // interrupt service routine: PIN CHANGE 0 interrupt
-// it covers 8 input pins PA 0-7
+// on attiny84 it covers 8 input pins PA 0-7
 // there also exists PIN CHANGE 1 interrupt which
 // covers another 4 input pins PB 0-3
+// on attiny85 only PIN CHANGE 0 exists
 ISR(PCINT0_vect)
 {
 }
