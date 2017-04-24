@@ -97,7 +97,8 @@ void main()
    {
      PORTB = t;
      t ^= LED;
-     for(i = 0; i < 10000; i++);
+     for(i = 0; i < 10000; i++)
+       asm("nop");
    }
 
    set_sleep_mode(
@@ -115,6 +116,6 @@ void main()
      sleep_disable();
    }
    sei();
-   for(;;);
+   // for(;;);
  }
 }
