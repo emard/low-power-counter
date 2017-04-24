@@ -5,8 +5,12 @@
 #include <avr/sleep.h>
 
 #define LED (1<<PB1)
+#define INPUT ((1<<PB3) | (1<<PB0) | (1<<PB2))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
+#define PIN_CHANGE_INTERRUPT_ENABLE() (GIMSK |= (1<<PCIE))
+#define PIN_CHANGE_MONITOR(n) (PCMSK = n) // example: use (PCINT2 | PCINT3) to monitor PB2 and PB3 
+#define PIN_CHANGE_FLAG_CLEAR() (GIFR = PCIF)
 
 enum 
 { 
@@ -84,13 +88,17 @@ uint8_t find_free_record(struct record *r)
 #if 1
 ISR(PCINT0_vect)
 {
+  // PIN_CHANGE_FLAG_CLEAR();
 }
 #endif
 
 void main()
 {
  int i;
- unsigned char t = LED;
+
+ ADC_DISABLE();
+ set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
  
  uint8_t j, k;
  j = find_free_record(counter);
@@ -106,23 +114,27 @@ void main()
  // write 0-delimiter to next position
  record_write(counter, j);
 
- DDRB = t;
+ DDRB = LED; // only LED output, other pins input
+ PORTB = INPUT | LED; // pullup enable on input pin, led OFF
+
+ PIN_CHANGE_FLAG_CLEAR();
+ PIN_CHANGE_INTERRUPT_ENABLE();
+ PIN_CHANGE_MONITOR(PCINT0 | PCINT2 | PCINT3); // this is PB3 on the device (pin 2)
+ // should already set monitored pin as input and enable its pull up
+ PIN_CHANGE_FLAG_CLEAR();
 
  for(;;)
  {
    // blink 10 times
-   for(j = 0; j < 11; j++)
+   for(j = 0; j < 10; j++)
    {
-     PORTB = t;
-     t ^= LED;
+     // PORTB = t | INPUT; // blink led and enable pullup on input pin
+     // t ^= LED;
+     PINB = LED; // toggle LED bit
      for(i = 0; i < 10000; i++)
        asm("nop");
    }
 
-   #if 1
-   ADC_DISABLE();
-   set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-   #endif
    cli();
    if(1 == 1)
    {
@@ -131,6 +143,7 @@ void main()
      sleep_cpu();
      sleep_disable();
    }
+   PIN_CHANGE_FLAG_CLEAR();
    sei();
    // for(;;);
  }

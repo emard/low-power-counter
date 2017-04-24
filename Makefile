@@ -167,7 +167,7 @@ $(PROJECT).u: $(PROJECT).flash.$(OBJCOPY_FORMAT) $(PROJECT).eeprom.$(OBJCOPY_FOR
 	avrdude $(AVRDUDEPAR) \
 	  -U eeprom:w:$(PROJECT).eeprom.$(OBJCOPY_FORMAT):$(AVRDUDE_FORMAT) \
 	  -U flash:w:$(PROJECT).flash.$(OBJCOPY_FORMAT):$(AVRDUDE_FORMAT)
-	echo -n -e "\\007"
+	# echo -n -e "\\007"
 
 $(PROJECT).us: $(PROJECT).flash.$(OBJCOPY_FORMAT) $(PROJECT).eeprom.$(OBJCOPY_FORMAT)
 
@@ -177,7 +177,7 @@ $(PROJECT).bu:
 	#cat < $(UPLOAD_COUNTER)
 	avrdude $(AVRDUDEPAR) \
 	  -U flash:w:$(PROJECT).flash.$(OBJCOPY_FORMAT):$(AVRDUDE_FORMAT)
-	echo -n -e "\\007"
+	# echo -n -e "\\007"
 
 # ssbl bootloader upload
 $(PROJECT).su: $(PROJECT).flash.$(OBJCOPY_FORMAT) $(PROJECT).eeprom.$(OBJCOPY_FORMAT)
@@ -191,7 +191,7 @@ $(PROJECT).eu: $(PROJECT).eeprom.$(OBJCOPY_FORMAT)
 	sleep 2
 	avrdude $(AVRDUDEPAR) \
 	  -U eeprom:w:$(PROJECT).eeprom.$(OBJCOPY_FORMAT):$(AVRDUDE_FORMAT)
-	echo -n -e "\\007"
+	# echo -n -e "\\007"
 
 # read the eeprom	
 eread:
@@ -203,7 +203,7 @@ $(PROJECT).v: $(PROJECT).flash.$(OBJCOPY_FORMAT) $(PROJECT).eeprom.$(OBJCOPY_FOR
 	avrdude $(AVRDUDEPAR) \
 	  -U eeprom:v:$(PROJECT).eeprom.$(OBJCOPY_FORMAT):$(AVRDUDE_FORMAT) \
 	  -U flash:v:$(PROJECT).flash.$(OBJCOPY_FORMAT):$(AVRDUDE_FORMAT)
-	echo -n -e "\\007"
+	# echo -n -e "\\007"
 
 ui:	ui.c unixavr.c
 	gcc -o $@ ui.c unixavr.c
