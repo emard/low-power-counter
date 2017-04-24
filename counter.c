@@ -37,11 +37,11 @@ uint8_t find_free_record(struct record *r)
   struct record data[1];
   for(i = 0; i < N_RECORDS; i++)
   {
-    int j, z = N_CHANNELS;
+    uint8_t j, z = N_CHANNELS;
     eeprom_read_block(data, &(memory[i]), sizeof(struct record));
     for(j = 0; j < N_CHANNELS; j++)
     {
-      if(data->c == 0)
+      if(data->c[j] == 0)
         z--;
     }
     // all values zero -> found new free entry
@@ -112,7 +112,7 @@ void main()
    set_sleep_mode(
      1*SLEEP_MODE_IDLE
    | 1*SLEEP_MODE_ADC
-   | 0*SLEEP_MODE_PWR_DOWN
+   | 1*SLEEP_MODE_PWR_DOWN
    // | 1*SLEEP_MODE_STANDBY // not available on attiny85
    );
    #endif
