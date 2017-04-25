@@ -1,5 +1,6 @@
 #include <avr/io.h> 
 #include <stdlib.h>
+#include <string.h>
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
@@ -135,11 +136,20 @@ void transmit(uint8_t i)
  PORTB &= ~LED; // led OFF
 }
 
+void delay()
+{
+ uint32_t d;
+ for(d = 0; d < 10000; d++)
+   asm("nop");
+}
+
 void main()
 {
+ uint8_t old_pin_state, new_pin_state;
+
  ADC_DISABLE();
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-
+ 
  DDRB = LED; // only LED output, other pins input
  PORTB = INPUT; // pullup enable on input pins, led OFF
 
@@ -149,10 +159,29 @@ void main()
  // should already set monitored pin as input and enable its pull up
  PIN_CHANGE_FLAG_CLEAR();
 
+ old_pin_state = PINB & INPUT;
+ new_pin_state = old_pin_state;
+
  for(;;)
  {
-   increment(0);
-   transmit(0);
+   delay();
+   new_pin_state = PINB & INPUT;
+   while(new_pin_state != old_pin_state)
+   {
+     uint8_t j, change;
+     change = old_pin_state ^ new_pin_state;
+     for(j = 0; j < N_CHANNELS; j++)
+     {
+       if( (change & 1) != 0)
+       {
+         increment(j);
+         transmit(j);
+       }
+       change >>= 1; // downshift
+     }
+     old_pin_state = new_pin_state;
+     new_pin_state = PINB & INPUT;
+   }
 
    cli();
    if(1 == 1)
