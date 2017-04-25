@@ -36,6 +36,8 @@ struct record EEMEM memory[N_RECORDS]; // storage in EEPROM
 
 struct record counter[1]; // one record as counter in RAM
 
+uint8_t pin_state, pin_change; // ISR tracks pin state and sets bits of pin_change to 1
+
 void record_read(struct record *r, uint8_t i)
 {
   eeprom_read_block(r, &(memory[i % N_RECORDS]), sizeof(struct record));
@@ -87,9 +89,12 @@ uint8_t find_free_record(struct record *r)
 // there also exists PIN CHANGE 1 interrupt which
 // covers another 4 input pins PB 0-3
 // on attiny85 only PIN CHANGE 0 exists
-#if 0
+#if 1
 ISR(PCINT0_vect)
 {
+  uint8_t pin_current = PINB & INPUT;
+  pin_change |= pin_current ^ pin_state;
+  pin_state = pin_current;
   // executing ISR will automatically clear
   // interrupt flag - no need to manually clear it like this:
   // PIN_CHANGE_FLAG_CLEAR();
@@ -122,7 +127,7 @@ void transmit(uint8_t i)
  uint32_t d, value;
 
  value = counter->c[i];
- // blink LED send binary counter, LSB first
+ // blink LED send binary counter, send 8 bit, LSB first
  for(j = 0; j < 8; j++)
  {
    if((value & 1) != 0)
@@ -145,8 +150,6 @@ void delay()
 
 void main()
 {
- uint8_t old_pin_state, new_pin_state;
-
  ADC_DISABLE();
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
  
@@ -159,30 +162,27 @@ void main()
  // should already set monitored pin as input and enable its pull up
  PIN_CHANGE_FLAG_CLEAR();
 
- old_pin_state = PINB & INPUT;
- new_pin_state = old_pin_state;
-
  for(;;)
  {
    #if 0
-   delay();
-   new_pin_state = PINB & INPUT;
-   while(new_pin_state != old_pin_state)
+   //delay();
+   while(pin_change != 0)
    {
-     uint8_t j, change;
-     change = old_pin_state ^ new_pin_state;
+     uint8_t j, change, m = 1;
+
+     change = pin_change;
      for(j = 0; j < N_CHANNELS; j++)
      {
-       if( (change & 1) != 0)
+       if( (change & m) != 0)
        {
          increment(j);
          transmit(j);
+         cli();
+         pin_change &= ~(1<<m); // clear pin change bit
+         sei();
        }
-       change >>= 1; // downshift
+       m <<= 1; // upshift mask
      }
-     old_pin_state = new_pin_state;
-     delay();
-     new_pin_state = PINB & INPUT;
    }
    #else
    // this works well
@@ -200,7 +200,7 @@ void main()
    }
    // if we don't have ISR registered,
    // we need to manually clear interrupt flag:
-   PIN_CHANGE_FLAG_CLEAR();
+   // PIN_CHANGE_FLAG_CLEAR();
    sei();
  }
 }
