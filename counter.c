@@ -171,7 +171,7 @@ void main()
 
  for(;;)
  {
-   #if 0
+   #if 1
    //delay();
    while(pin_change != 0)
    {
@@ -185,7 +185,7 @@ void main()
          increment(j);
          transmit(j);
          cli();
-         pin_change &= ~(1<<m); // clear pin change bit
+         pin_change &= ~m; // clear pin change bit
          sei();
        }
        m <<= 1; // upshift mask

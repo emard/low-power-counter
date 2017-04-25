@@ -61,6 +61,7 @@ FUSEOPT_316_RC = -U hfuse:w:0xd3:m -U lfuse:w:0xf3:m -U efuse:w:0xfa:m
 # Crystal 8MHz  (CPU will run at 16MHz, PLL at 64MHz)
 FUSEOPT_316_XTAL = -U hfuse:w:0xd3:m -U lfuse:w:0xf5:m -U efuse:w:0xfa:m
 # Fuse for ATTINY85 internal RC oscillator 1MHz
+FUSEOPT_T85_32kHz = -U hfuse:w:0xdf:m -U lfuse:w:0x66:m -U efuse:w:0xff:m
 FUSEOPT_T85_RC = -U hfuse:w:0xdf:m -U lfuse:w:0x62:m -U efuse:w:0xff:m
 #FUSEOPT = -U hfuse:w:high.txt -U lfuse:w:low.txt
 FUSEOPT=$(FUSEOPT_T85_RC)
