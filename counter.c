@@ -164,6 +164,7 @@ void main()
 
  for(;;)
  {
+   #if 0
    delay();
    new_pin_state = PINB & INPUT;
    while(new_pin_state != old_pin_state)
@@ -180,8 +181,14 @@ void main()
        change >>= 1; // downshift
      }
      old_pin_state = new_pin_state;
+     delay();
      new_pin_state = PINB & INPUT;
    }
+   #else
+   // this works well
+   increment(0);
+   transmit(0);
+   #endif
 
    cli();
    if(1 == 1)
