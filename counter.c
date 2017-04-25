@@ -126,6 +126,13 @@ void transmit(uint8_t i)
  uint8_t j;
  uint32_t d, value;
 
+ // use timer0 
+ TCNT0 = 0;
+ TCCR0A=0;
+ TCCR0B=0;
+ 
+ TIFR = TOV0; // reset timer overflow flag
+ 
  value = counter->c[i];
  // blink LED send binary counter, send 8 bit, LSB first
  for(j = 0; j < 8; j++)
@@ -135,8 +142,14 @@ void transmit(uint8_t i)
    else
      PORTB &= ~LED; // LED off
    value >>= 1; // downshift
-   for(d = 0; d < 10000; d++)
-     asm("nop");
+   if((TIFR & TOV0) != 0)
+     
+   for(d = 0; d < 100; d++)
+   {
+     while((TIFR & TOV0) == 0); // wait for interrupt flag
+     TIFR = TOV0; // reset interrupt flag
+     // asm("nop");
+   }
  }
  PORTB &= ~LED; // led OFF
 }
