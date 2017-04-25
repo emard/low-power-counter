@@ -88,6 +88,8 @@ uint8_t find_free_record(struct record *r)
 #if 1
 ISR(PCINT0_vect)
 {
+  // executing ISR will automatically clear
+  // interrupt flag - no need to manually clear it like this:
   // PIN_CHANGE_FLAG_CLEAR();
 }
 #endif
@@ -128,8 +130,6 @@ void main()
    // blink 10 times
    for(j = 0; j < 10; j++)
    {
-     // PORTB = t | INPUT; // blink led and enable pullup on input pin
-     // t ^= LED;
      PINB = LED; // toggle LED bit
      for(i = 0; i < 10000; i++)
        asm("nop");
@@ -143,8 +143,9 @@ void main()
      sleep_cpu();
      sleep_disable();
    }
+   // if we don't have ISR registered,
+   // we need to manually clear interrupt flag:
    // PIN_CHANGE_FLAG_CLEAR();
    sei();
-   // for(;;);
  }
 }
