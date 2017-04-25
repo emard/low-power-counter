@@ -143,7 +143,7 @@ void main()
      sleep_cpu();
      sleep_disable();
    }
-   PIN_CHANGE_FLAG_CLEAR();
+   // PIN_CHANGE_FLAG_CLEAR();
    sei();
    // for(;;);
  }
