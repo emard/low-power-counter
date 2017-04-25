@@ -5,7 +5,7 @@
 #include <avr/sleep.h>
 
 #define LED (1<<PB1)
-#define INPUT ((1<<PB0))
+#define INPUT ((1<<PB3))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
 #define PIN_CHANGE_INTERRUPT_ENABLE() (GIMSK |= (1<<PCIE))
@@ -119,7 +119,7 @@ void main()
 
  PIN_CHANGE_FLAG_CLEAR();
  PIN_CHANGE_INTERRUPT_ENABLE();
- PIN_CHANGE_MONITOR(1<<PCINT0); // this is PB0, DIL physical pin 5
+ PIN_CHANGE_MONITOR(1<<PCINT3); // this is PB3, DIL physical pin 2
  // should already set monitored pin as input and enable its pull up
  PIN_CHANGE_FLAG_CLEAR();
 
