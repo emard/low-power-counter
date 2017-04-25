@@ -4,8 +4,9 @@
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
 
-#define LED (1<<PB1)
-#define INPUT ((1<<PB3))
+#define LED (1<<PB4)
+#define INPUT ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
+#define INTERRUPT_PINS ((1<<PCINT0)|(1<<PCINT1)|(1<<PCINT2)|(1<<PCINT3))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
 #define PIN_CHANGE_INTERRUPT_ENABLE() (GIMSK |= (1<<PCIE))
@@ -140,11 +141,11 @@ void main()
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
  DDRB = LED; // only LED output, other pins input
- PORTB = INPUT; // pullup enable on input pin, led OFF
+ PORTB = INPUT; // pullup enable on input pins, led OFF
 
  PIN_CHANGE_FLAG_CLEAR();
  PIN_CHANGE_INTERRUPT_ENABLE();
- PIN_CHANGE_MONITOR(1<<PCINT3); // this is PB3, DIL physical pin 2
+ PIN_CHANGE_MONITOR(INTERRUPT_PINS); // this is PB0-PB3 inputs
  // should already set monitored pin as input and enable its pull up
  PIN_CHANGE_FLAG_CLEAR();
 
