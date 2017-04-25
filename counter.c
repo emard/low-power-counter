@@ -94,29 +94,53 @@ ISR(PCINT0_vect)
 }
 #endif
 
-void main()
+// increment ith counter using eeprom record storage
+void increment(uint8_t i)
 {
- int i;
-
- ADC_DISABLE();
- set_sleep_mode(SLEEP_MODE_PWR_DOWN);
- 
  uint8_t j, k;
+ // struct record counter[1];
+
  j = find_free_record(counter);
- // record_read(counter, j);
- counter->c[0]++; // ncrement it
+ counter->c[i]++; // ncrement it
  record_write(counter, j);
- // next position
+ // next position, wraparound
  if(++j >= N_RECORDS)
    j = 0;
  // create 0-delimiter
+ struct record delimiter[1];
  for(k = 0; k < N_CHANNELS; k++)
-   counter->c[k] = 0;
+   delimiter->c[k] = 0;
  // write 0-delimiter to next position
- record_write(counter, j);
+ record_write(delimiter, j);
+}
+
+void transmit(uint8_t i)
+{
+ uint8_t j;
+ uint32_t d, value;
+
+ value = counter->c[i];
+ // blink LED send binary counter, LSB first
+ for(j = 0; j < 8; j++)
+ {
+   if((value & 1) != 0)
+     PORTB |= LED; // LED ON
+   else
+     PORTB &= ~LED; // LED off
+   value >>= 1; // downshift
+   for(d = 0; d < 10000; d++)
+     asm("nop");
+ }
+ PORTB &= ~LED; // led OFF
+}
+
+void main()
+{
+ ADC_DISABLE();
+ set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
  DDRB = LED; // only LED output, other pins input
- PORTB = INPUT | LED; // pullup enable on input pin, led OFF
+ PORTB = INPUT; // pullup enable on input pin, led OFF
 
  PIN_CHANGE_FLAG_CLEAR();
  PIN_CHANGE_INTERRUPT_ENABLE();
@@ -126,13 +150,8 @@ void main()
 
  for(;;)
  {
-   // blink 10 times
-   for(j = 0; j < 10; j++)
-   {
-     PINB = LED; // toggle LED bit
-     for(i = 0; i < 10000; i++)
-       asm("nop");
-   }
+   increment(0);
+   transmit(0);
 
    cli();
    if(1 == 1)
