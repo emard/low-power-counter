@@ -85,7 +85,7 @@ uint8_t find_free_record(struct record *r)
 // there also exists PIN CHANGE 1 interrupt which
 // covers another 4 input pins PB 0-3
 // on attiny85 only PIN CHANGE 0 exists
-#if 1
+#if 0
 ISR(PCINT0_vect)
 {
   // executing ISR will automatically clear
@@ -100,7 +100,6 @@ void main()
 
  ADC_DISABLE();
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
-
  
  uint8_t j, k;
  j = find_free_record(counter);
@@ -145,7 +144,7 @@ void main()
    }
    // if we don't have ISR registered,
    // we need to manually clear interrupt flag:
-   // PIN_CHANGE_FLAG_CLEAR();
+   PIN_CHANGE_FLAG_CLEAR();
    sei();
  }
 }
