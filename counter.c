@@ -128,7 +128,7 @@ void transmit(uint8_t i)
 
  // use timer0 
  TCNT0 = 0;
- TCCR0A = 0;
+ TCCR0A = (1<<WGM01) | (1<<WGM00);
  TCCR0B = 5; // prescaler 5 (clk/1024)
  
  TIFR = TOV0; // reset timer overflow flag
@@ -142,13 +142,11 @@ void transmit(uint8_t i)
    else
      PORTB &= ~LED; // LED off
    value >>= 1; // downshift
-   if((TIFR & TOV0) != 0)
-     
-   for(d = 0; d < 100; d++)
+   for(d = 0; d < 10000; d++)
    {
-     while((TIFR & TOV0) == 0); // wait for interrupt flag
+     // while((TIFR & TOV0) == 0); // wait for interrupt flag
      TIFR = TOV0; // reset interrupt flag
-     // asm("nop");
+     asm("nop");
    }
  }
  PORTB &= ~LED; // led OFF
