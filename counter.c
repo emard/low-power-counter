@@ -95,8 +95,8 @@ ISR(PCINT0_vect)
   uint8_t pin_current = PINB & INPUT;
   pin_change |= pin_current ^ pin_state;
   pin_state = pin_current;
-  // executing ISR will automatically clear
-  // interrupt flag - no need to manually clear it like this:
+  // executing ISR will automatically clear its interrupt flag.
+  // it is not neccessary to manually clear interrupt flag:
   // PIN_CHANGE_FLAG_CLEAR();
 }
 #endif
@@ -123,29 +123,30 @@ void increment(uint8_t i)
 
 void transmit(uint8_t i)
 {
- uint8_t j;
- uint32_t d, value;
+  uint8_t j;
+  uint64_t value;
 
- // use timer0 
- TCNT0 = 0;
- TCCR0A = 0;
- TCCR0B = 4; // prescaler 4 (clk/256), 5 (clk/1024)
+  // use timer0 
+  TCNT0 = 0;
+  TCCR0A = 0;
+  TCCR0B = 4; // prescaler 4 (clk/256), 5 (clk/1024)
  
- TIFR = 1<<TOV0; // reset timer overflow flag
+  TIFR = 1<<TOV0; // reset timer overflow interrupt flag
  
- value = counter->c[i];
- // blink LED send binary counter, send 8 bit, LSB first
- for(j = 0; j < 8; j++)
- {
-   if((value & 1) != 0)
-     PORTB |= LED; // LED ON
-   else
-     PORTB &= ~LED; // LED off
-   value >>= 1; // downshift
-   while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-   TIFR = 1<<TOV0; // reset interrupt flag
- }
- PORTB &= ~LED; // led OFF
+  // the LSB (header 0x55) is sent first
+  value = ((counter->c[i] & 0xFF) << 8) | 0x55; // the counter
+  // blink LED send binary counter, send 8 bit, LSB first
+  for(j = 0; j < 16; j++) // 16 bits of the value
+  {
+    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
+    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+    if((value & 1) != 0)
+      PORTB |= LED; // LED ON
+    else
+      PORTB &= ~LED; // LED off
+    value >>= 1; // downshift
+  }
+  PORTB &= ~LED; // led OFF
 }
 
 void delay()
