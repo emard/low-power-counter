@@ -20,30 +20,38 @@ a single chip in 8-pin package.
 # Input and Output
 
 It counts every transition of the input state. It will trigger
-on both rising ad falling edges. So it will update counter
+on both rising and falling edges. So it will update counter
 when input chanes from logical 0 to 1 and also back from 1 to 0.
+
+Chip ATTINY85V layout
+
+    nRESET |1  \/  8| +3V
+       IN3 |2      7| IN2
+       OUT |3      6| IN1
+       GND |4      5| IN0
 
 Too fast events >0.5Hz will not be counted, for example mechanical
 contact ringing of the input switch will be filtered out.
 
-After each input pulse it encodes new counter state over
-a serial digital line. Output is a bit sequence 
+After each input pulse, new counter state is sent over
+the serial digital line. Output is a timed bit sequence 
 containing header, channel number, counter value and CRC.
 Output is intended to be connected to a simple
 433 MHz transmitter and received remotely with
-some compatible receiver or RTL-SDR.
+some general-purpose receiver like RTL-SDR.
 
 # Power saving issues
 
-When designing the circuit take into account that everything
+When designing the circuit take into account that every current flow
 draws some power, so for example when internal pull up resistors
-in the chip are enabled, they will draw about 80uA per input line
-connected to GND.
+in the chip are enabled, each input connected to GND will draw about 
+80uA.
 
-During 3V battery life, voltage will drop down to about 2V until
-battery is completely exhausted, so we recommend using low-voltage
-chip ATTINY85V which is designed to work down to 1.8V.
-Normal ATTINY85 seems to work at 2V though.
+During 3V battery life, voltage will drop down to about 2V until.
+Low-voltage version of the chip "ATTINY85V" is recommended which 
+because it is designed to work down to 1.8V.
+Normal "ATTINY85" is designed down to 2.7V bit its 
+seems to work at 2V though.
 
 The output transmitter should also be designed to work with
 battery voltage below 2V and have low power mode when idle.
