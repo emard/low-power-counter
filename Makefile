@@ -22,6 +22,10 @@ AVRTTY=avrdoper
 AVRPROG=stk500hvsp
 #AVRPROG=dasa
 
+## /etc/udev/rules.d/80-avrdoper.rules
+# SUBSYSTEM=="usb", ATTR{product}=="AVR-Doper", ATTR{idProduct}=="05df", ATTRS{idVendor}=="16c0", MODE="0666"
+
+
 AVRDUDE_MCU=$(MCU)
 #AVRDUDE_OVERRIDE=-F
 AVRDUDE_BAUD=-b 115200
