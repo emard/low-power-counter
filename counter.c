@@ -97,7 +97,6 @@ uint8_t find_free_record(struct record *r)
 // there also exists PIN CHANGE 1 interrupt which
 // covers another 4 input pins PB 0-3
 // on attiny85 only PIN CHANGE 0 exists
-#if 1
 ISR(PCINT0_vect)
 {
   uint8_t pin_current = PINB & INPUT;
@@ -107,7 +106,6 @@ ISR(PCINT0_vect)
   // it is not neccessary to manually clear interrupt flag:
   // PIN_CHANGE_FLAG_CLEAR();
 }
-#endif
 
 // increment ith counter using eeprom record storage
 void increment(uint8_t i)
@@ -157,13 +155,6 @@ void transmit(uint8_t i)
   PORTB &= ~LED; // led OFF
 }
 
-void delay()
-{
- uint32_t d;
- for(d = 0; d < 10000; d++)
-   asm("nop");
-}
-
 void main()
 {
  // as early as possible, check the MCUSR to detect external reset
@@ -190,7 +181,6 @@ void main()
  for(;;)
  {
    #if 1
-   //delay();
    while(pin_change != 0)
    {
      uint8_t j, change, m = 1;
@@ -210,7 +200,7 @@ void main()
      }
    }
    #else
-   // this works well
+   // this works for single input
    increment(0);
    transmit(0);
    #endif
