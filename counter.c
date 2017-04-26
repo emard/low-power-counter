@@ -168,11 +168,13 @@ void main()
 {
  // as early as possible, check the MCUSR to detect external reset
  // upon external reset, reset the EEPROM counter state
+ #if 0
  uint8_t mcusr = MCUSR;
  MCUSR = 0; // clear it
  if((mcusr | EXTRF) != 0) // external reset -- clear eeprom
    counter_reset();
-
+ #endif
+ 
  ADC_DISABLE();
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
  
