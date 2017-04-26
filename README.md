@@ -21,7 +21,7 @@ a single chip in 8-pin package.
 
 It counts every transition of the input state. It will trigger
 on both rising and falling edges. So it will update counter
-when input chanes from logical 0 to 1 and also back from 1 to 0.
+when input changes from logical 0 to 1 and also back from 1 to 0.
 
 Chip ATTINY85V layout
 
