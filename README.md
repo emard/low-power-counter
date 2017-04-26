@@ -1,4 +1,4 @@
-# Low power counter with ATTINY85
+# Low power counter with ATTINY85V
 
 Intended for counting slow pulses which
 occur once in few seconds or slower.
@@ -14,7 +14,7 @@ Runs on 3V lithium battery like CR2032.
 In standby state it enters low power mode (below 1uA),
 what makes a long battery life.
 
-Everything runs on a small AVR ATTINY85 microcontroller,
+Everything runs on a small AVR ATTINY85V microcontroller,
 a single chip in 8-pin package.
 
 # Input and Output
@@ -30,7 +30,7 @@ After each input pulse it encodes new counter state over
 a serial digital line. Output is a bit sequence 
 containing header, channel number, counter value and CRC.
 Output is intended to be connected to a simple
-433 MHz transmitter and received remotely with 
+433 MHz transmitter and received remotely with
 some compatible receiver or RTL-SDR.
 
 # Power saving issues
@@ -41,9 +41,9 @@ in the chip are enabled, they will draw about 80uA per input line
 connected to GND.
 
 During 3V battery life, voltage will drop down to about 2V until
-battery is completely exhausted, so we recommend using low-voltage 
-version ATTINY85V which is designed to work down to 1.8V.
+battery is completely exhausted, so we recommend using low-voltage
+chip ATTINY85V which is designed to work down to 1.8V.
 Normal ATTINY85 seems to work at 2V though.
 
-The output transmitter should also be designed to work with 
-battery voltage below 2V and to enter low power mode when idle.
+The output transmitter should also be designed to work with
+battery voltage below 2V and have low power mode when idle.
