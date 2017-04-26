@@ -48,6 +48,14 @@ void record_write(struct record *r, uint8_t i)
   eeprom_update_block(r, &(memory[i % N_RECORDS]), sizeof(struct record));
 }
 
+void counter_reset()
+{
+  uint8_t i;
+  memset(counter, 0, sizeof(struct record));
+  for(i = 0; i < N_RECORDS; i++)
+    record_write(counter, i);
+}
+
 // find free data in eeprom
 // that's first data which has 0
 // also read the last non-free record
@@ -158,6 +166,13 @@ void delay()
 
 void main()
 {
+ // as early as possible, check the MCUSR to detect external reset
+ // upon external reset, reset the EEPROM counter state
+ uint8_t mcusr = MCUSR;
+ MCUSR = 0; // clear it
+ if((mcusr | EXTRF) != 0) // external reset -- clear eeprom
+   counter_reset();
+
  ADC_DISABLE();
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
  
