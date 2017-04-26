@@ -55,3 +55,11 @@ seems to work at 2V though.
 
 The output transmitter should also be designed to work with
 battery voltage below 2V and have low power mode when idle.
+
+# Todo
+
+    [ ] Make protocol compatible with some keyfob sequence
+    [ ] Channel ID
+    [ ] In last counter bit, consistently record input state (0 or 1)
+    [ ] 32-bit CRC
+    [ ] Reset all counters with nRESET
