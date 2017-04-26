@@ -47,10 +47,10 @@ draws some power, so for example when internal pull up resistors
 in the chip are enabled, each input connected to GND will draw about 
 80uA.
 
-During 3V battery life, voltage will drop down to about 2V until.
-Low-voltage version of the chip "ATTINY85V" is recommended which 
+During 3V battery life, voltage will drop down to about 2V.
+Low-voltage version of the chip "ATTINY85V" is recommended
 because it is designed to work down to 1.8V.
-Normal "ATTINY85" is designed down to 2.7V bit its 
+Normal "ATTINY85" is designed down to 2.7V but it 
 seems to work at 2V though.
 
 The output transmitter should also be designed to work with
