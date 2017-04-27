@@ -59,5 +59,5 @@ battery voltage below 2V and have low power mode when idle.
 
 # Todo
 
-    [ ] Make protocol compatible with honeywell.c from [rtl_433](https://github.com/merbanan/rtl_433.git)
+    [ ] Make protocol compatible with honeywell.c from rtl_433
     [ ] Reset all counters with nRESET
