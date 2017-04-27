@@ -107,14 +107,12 @@ ISR(PCINT0_vect)
   // PIN_CHANGE_FLAG_CLEAR();
 }
 
-// increment ith counter using eeprom record storage
-void increment(uint8_t i)
+// store the counter using eeprom record storage
+void store_counter()
 {
  uint8_t j, k;
- // struct record counter[1];
 
- j = find_free_record(counter);
- counter->c[i]++; // ncrement it
+ j = find_free_record(NULL);
  record_write(counter, j);
  // next position, wraparound
  if(++j >= N_RECORDS)
@@ -141,18 +139,44 @@ void transmit(uint8_t i)
  
   // the LSB (header 0x55) is sent first
   value = ((counter->c[i] & 0xFF) << 8) | 0x55; // the counter
-  // blink LED send binary counter, send 8 bit, LSB first
+  // blink LED send binary counter, send LSB first
   for(j = 0; j < 16; j++) // 16 bits of the value
   {
-    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
     if((value & 1) != 0)
       PORTB |= LED; // LED ON
     else
       PORTB &= ~LED; // LED off
+    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
+    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
     value >>= 1; // downshift
   }
   PORTB &= ~LED; // led OFF
+}
+
+void update_pin_state()
+{
+  uint8_t i;
+  pin_state = 0;
+  for(i = N_CHANNELS-1; i != 0xff; i--)
+  {
+    pin_state <<= 1;
+    pin_state |= counter->c[i] & 1; // LSB of the counter is the pin state
+  }
+}
+
+void delay(uint8_t n)
+{
+  uint8_t j;
+  TCNT0 = 0;
+  TCCR0A = 0;
+  TCCR0B = 4; // prescaler 4 (clk/256), 5 (clk/1024)
+ 
+  TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+  for(j = 0; j < n; j++)
+  {
+    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
+    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+  }
 }
 
 void main()
@@ -165,6 +189,8 @@ void main()
  if((mcusr | EXTRF) != 0) // external reset -- clear eeprom
    counter_reset();
  #endif
+
+ delay(16); // wait a second for power to become stable
  
  ADC_DISABLE();
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
@@ -172,36 +198,62 @@ void main()
  DDRB = LED; // only LED output, other pins input
  PORTB = INPUT; // pullup enable on input pins, led OFF
 
+ #if 1
+ find_free_record(counter);
+ update_pin_state(); // read pin state from last record in eeprom
+ #endif
+
  PIN_CHANGE_FLAG_CLEAR();
  PIN_CHANGE_INTERRUPT_ENABLE();
  PIN_CHANGE_MONITOR(INTERRUPT_PINS); // this is PB0-PB3 inputs
  // should already set monitored pin as input and enable its pull up
  PIN_CHANGE_FLAG_CLEAR();
 
+ // initialize pin change, compare stored state to current state
+ pin_change = (PINB & INPUT) ^ pin_state;
+ 
  for(;;)
  {
    #if 1
-   while(pin_change != 0)
+   delay(1); // time for de-bounce
+   if(pin_change != 0)
    {
-     uint8_t j, change, m = 1;
+     uint8_t j, change, m = 1, tx = 0;
+     uint8_t new_pin_state = PINB & INPUT;
 
      change = pin_change;
      for(j = 0; j < N_CHANNELS; j++)
      {
-       if( (change & m) != 0)
+       if( (change & m) != 0 || ((new_pin_state ^ pin_state) & m) != 0 )
        {
-         increment(j);
-         transmit(j);
+         counter->c[j]++;
+         update_pin_state();
+         #if 1
+         if( ((new_pin_state ^ pin_state) & m) != 0)
+         {
+           counter->c[j]++;
+           update_pin_state();
+         }
+         #endif
          cli();
-         pin_change &= ~m; // clear pin change bit
+         pin_change &= ~m; // clear pin change bit (change serviced)
          sei();
+         tx |= m; // transmit this bit
        }
        m <<= 1; // upshift mask
+     }
+     store_counter();
+     for(j = 0; j < N_CHANNELS; j++)
+     {
+       if( (tx & 1) != 0 )
+         transmit(j);
+       tx >>= 1;
      }
    }
    #else
    // this works for single input
-   increment(0);
+   counter->c[0]++;
+   store_counter();
    transmit(0);
    #endif
 
