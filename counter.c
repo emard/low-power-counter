@@ -148,6 +148,9 @@ void transmit(uint8_t i)
       PORTB &= ~LED; // LED off
     while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
     TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+    PINB = LED; // invert the led and wait again -> manchester encoding
+    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
+    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
     value >>= 1; // downshift
   }
   PORTB &= ~LED; // led OFF
