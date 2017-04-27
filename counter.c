@@ -36,6 +36,16 @@ struct record EEMEM memory[N_RECORDS]; // storage in EEPROM
 
 struct record counter[1]; // one record as counter in RAM
 
+// encoded packet to be sent, bit-slice
+union packet
+{
+  struct
+  {
+    uint64_t preamble:16, unknown:4, serial:20, data:8, crc:16;
+  };
+  uint64_t binary;
+};
+
 uint8_t pin_state, pin_change; // ISR tracks pin state and sets bits of pin_change to 1
 
 void record_read(struct record *r, uint8_t i)
@@ -128,7 +138,14 @@ void store_counter()
 void transmit(uint8_t i)
 {
   uint8_t j;
-  uint64_t value;
+  union packet tx;
+
+  // Construct the 64-bit TX packet
+  tx.preamble = 0xFFFE;
+  tx.unknown = 0x8;
+  tx.serial = 0x123456L;
+  tx.data = counter->c[i] & 0xFF;
+  tx.crc = 0x1234;
 
   // use timer0 
   TCNT0 = 0;
@@ -137,12 +154,10 @@ void transmit(uint8_t i)
  
   TIFR = 1<<TOV0; // reset timer overflow interrupt flag
  
-  // the LSB (header 0x55) is sent first
-  value = ((counter->c[i] & 0xFF) << 8) | 0x55; // the counter
   // blink LED send binary counter, send LSB first
-  for(j = 0; j < 16; j++) // 16 bits of the value
+  for(j = 0; j < 63; j++) // send 64-bit packet manchester encoded, MSB first
   {
-    if((value & 1) != 0)
+    if((tx.binary & (1ULL<<63)) != 0) // check MSB
       PORTB |= LED; // LED ON
     else
       PORTB &= ~LED; // LED off
@@ -151,7 +166,7 @@ void transmit(uint8_t i)
     PINB = LED; // invert the led and wait again -> manchester encoding
     while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
     TIFR = 1<<TOV0; // reset timer overflow interrupt flag
-    value >>= 1; // downshift
+    tx.binary <<= 1; // shift next bit
   }
   PORTB &= ~LED; // led OFF
 }
