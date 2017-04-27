@@ -37,7 +37,7 @@ After each input pulse, new counter state is sent over
 the serial digital line. Output is a timed bit sequence 
 containing header, channel number, counter value and CRC.
 Output is intended to be connected to a simple
-433 MHz transmitter and received remotely with
+on-off keying (OOK) 433 MHz transmitter and received remotely with
 some general-purpose receiver like
 [rtl_433](https://github.com/merbanan/rtl_433.git)
 
