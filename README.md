@@ -38,7 +38,8 @@ the serial digital line. Output is a timed bit sequence
 containing header, channel number, counter value and CRC.
 Output is intended to be connected to a simple
 433 MHz transmitter and received remotely with
-some general-purpose receiver like RTL-SDR.
+some general-purpose receiver like
+[rtl_433](https://github.com/merbanan/rtl_433.git)
 
 # Power saving issues
 
@@ -58,8 +59,5 @@ battery voltage below 2V and have low power mode when idle.
 
 # Todo
 
-    [ ] Make protocol compatible with some keyfob sequence
-    [ ] Channel ID
-    [x] In last counter bit, consistently record input state (0 or 1)
-    [ ] 32-bit CRC
+    [ ] Make protocol compatible with honeywell.c from [rtl_433](https://github.com/merbanan/rtl_433.git)
     [ ] Reset all counters with nRESET
