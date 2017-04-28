@@ -267,13 +267,14 @@ void main()
  for(;;)
  {
    #if 1
+   uint8_t j; // loop counter
+   uint8_t tx = 0; // bitmap of which counters changed and should be transmitted
    delay(1); // time for de-bounce
-   if(pin_change != 0)
+   while(pin_change != 0)
    {
-     uint8_t j, change, m = 1, tx = 0;
+     uint8_t change = pin_change, m = 1; // m is shifting 1-bit bitmask
      uint8_t new_pin_state = PINB & INPUT;
 
-     change = pin_change;
      for(j = 0; j < N_CHANNELS; j++)
      {
        if( (change & m) != 0 || ((new_pin_state ^ pin_state) & m) != 0 )
@@ -294,6 +295,11 @@ void main()
        }
        m <<= 1; // upshift mask
      }
+     delay(1); // allow for pins to change again
+   }
+
+   if(tx != 0)
+   {
      store_counter();
      for(j = 0; j < N_CHANNELS; j++)
      {
