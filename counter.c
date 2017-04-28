@@ -180,28 +180,33 @@ void transmit(uint8_t i)
 
   // use timer0 
   TCNT0 = 0;
-  TCCR0A = 0;
-  TCCR0B = 1; // prescaler 4 (clk/256), 5 (clk/1024)
+  OCR0A = 170;
+  TCCR0A = 2; // ctc mode - TCNT0 runs from 0 to OCR0A
+  TCCR0B = 1; // prescaler 1 (clk), 2 (clk/8), 3 (clk/64), 4 (clk/256), 5 (clk/1024)
  
-  TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+  TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
  
   // blink LED send binary counter, send LSB first
   for(j = 0; j < 64; j++) // send 64-bit packet manchester encoded, MSB first
   {
     uint8_t ledstate = (tx.binary & (1ULL<<63)) != 0 ? 1 : 0; // MSB
-    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+    while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
+    TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
     if(ledstate != 0)
       PORTB |= LED; // LED ON
     else
       PORTB &= ~LED; // LED off
-    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+    while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
+    TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
+    asm("nop");
+    asm("nop");
+    asm("nop");
+    asm("nop");
     PINB = LED; // invert the led and wait again -> manchester encoding
     tx.binary <<= 1; // shift next bit
   }
-  while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-  TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+  while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
+  TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
   PORTB &= ~LED; // led OFF
 }
 
@@ -220,14 +225,15 @@ void delay(uint8_t n)
 {
   uint8_t j;
   TCNT0 = 0;
-  TCCR0A = 0;
-  TCCR0B = 4; // prescaler 4 (clk/256), 5 (clk/1024)
+  OCR0A = 120;
+  TCCR0A = 2;
+  TCCR0B = 1; // prescaler 4 (clk/256), 5 (clk/1024)
  
-  TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+  TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
   for(j = 0; j < n; j++)
   {
-    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+    while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
+    TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
   }
 }
 
@@ -269,7 +275,7 @@ void main()
    #if 1
    uint8_t j; // loop counter
    uint8_t tx = 0; // bitmap of which counters changed and should be transmitted
-   delay(1); // time for de-bounce
+   delay(100); // time for de-bounce
    while(pin_change != 0)
    {
      uint8_t change = pin_change, m = 1; // m is shifting 1-bit bitmask
@@ -295,7 +301,7 @@ void main()
        }
        m <<= 1; // upshift mask
      }
-     delay(1); // allow for pins to change again
+     delay(100); // allow for pins to change again
    }
 
    if(tx != 0)
