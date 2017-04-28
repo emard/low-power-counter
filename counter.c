@@ -180,7 +180,7 @@ void transmit(uint8_t i)
 
   // use timer0 
   TCNT0 = 0;
-  OCR0A = 170;
+  OCR0A = 140; // ms
   TCCR0A = 2; // ctc mode - TCNT0 runs from 0 to OCR0A
   TCCR0B = 1; // prescaler 1 (clk), 2 (clk/8), 3 (clk/64), 4 (clk/256), 5 (clk/1024)
  
@@ -189,19 +189,13 @@ void transmit(uint8_t i)
   // blink LED send binary counter, send LSB first
   for(j = 0; j < 64; j++) // send 64-bit packet manchester encoded, MSB first
   {
-    uint8_t ledstate = (tx.binary & (1ULL<<63)) != 0 ? 1 : 0; // MSB
+    // calculate LED output state in advance
+    uint8_t ledstate = (tx.binary & (1ULL<<63)) != 0 ? PORTB | INPUT | LED : (PORTB | INPUT) & ~LED; // MSB
     while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
     TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
-    if(ledstate != 0)
-      PORTB |= LED; // LED ON
-    else
-      PORTB &= ~LED; // LED off
+    PORTB = ledstate;
     while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
     TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
-    asm("nop");
-    asm("nop");
-    asm("nop");
-    asm("nop");
     PINB = LED; // invert the led and wait again -> manchester encoding
     tx.binary <<= 1; // shift next bit
   }
