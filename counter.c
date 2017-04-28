@@ -181,7 +181,7 @@ void transmit(uint8_t i)
   // use timer0 
   TCNT0 = 0;
   TCCR0A = 0;
-  TCCR0B = 4; // prescaler 4 (clk/256), 5 (clk/1024)
+  TCCR0B = 1; // prescaler 4 (clk/256), 5 (clk/1024)
  
   TIFR = 1<<TOV0; // reset timer overflow interrupt flag
  
