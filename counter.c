@@ -4,6 +4,7 @@
 #include <avr/interrupt.h>
 #include <avr/eeprom.h>
 #include <avr/sleep.h>
+// #include <util/crc16.h>
 
 #define LED (1<<PB4)
 #define INPUT ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
@@ -41,7 +42,8 @@ union packet
 {
   struct
   {
-    uint64_t preamble:16, unknown:4, serial:20, data:8, crc:16;
+    // uint64_t preamble:16, unknown:4, serial:20, data:8, crc:16;
+    uint64_t crc:16, data:8, serial:20, unknown:4, preamble:16;
   };
   uint64_t binary;
 };
@@ -135,17 +137,46 @@ void store_counter()
  record_write(delimiter, j);
 }
 
+uint16_t crc16_ccitt(uint8_t const message[], unsigned nBytes, uint16_t polynomial, uint16_t init) {
+    uint16_t remainder = init;
+    unsigned byte, bit;
+
+    for (byte = 0; byte < nBytes; ++byte) {
+        remainder ^= message[byte] << 8;
+        for (bit = 0; bit < 8; ++bit) {
+            if (remainder & 0x8000) {
+                remainder = (remainder << 1) ^ polynomial;
+            }
+            else {
+                remainder = (remainder << 1);
+            }
+        }
+    }
+    return remainder;
+}
+
+void update_crc(union packet *p)
+{
+  uint8_t i;
+  uint8_t bb[6], *b;
+  b = (uint8_t *) &(p->binary);
+  for(i = 0; i < 6; i++)
+    bb[i] = ~b[7-i];
+  p->crc = ~crc16_ccitt(bb, 6, 0x8005, 0xfffe);
+}
+
 void transmit(uint8_t i)
 {
   uint8_t j;
   union packet tx;
 
   // Construct the 64-bit TX packet
-  tx.preamble = 0xFFFE;
-  tx.unknown = 0x8;
-  tx.serial = 0x123456L;
-  tx.data = counter->c[i] & 0xFF;
-  tx.crc = 0x1234;
+  tx.preamble = ~0xFFFE;
+  tx.unknown = 0x7;
+  tx.serial = 0x55664L;
+  tx.data = 0x3F;
+  tx.crc = 0x277D;
+  update_crc(&tx);
 
   // use timer0 
   TCNT0 = 0;
@@ -155,19 +186,22 @@ void transmit(uint8_t i)
   TIFR = 1<<TOV0; // reset timer overflow interrupt flag
  
   // blink LED send binary counter, send LSB first
-  for(j = 0; j < 63; j++) // send 64-bit packet manchester encoded, MSB first
+  for(j = 0; j < 64; j++) // send 64-bit packet manchester encoded, MSB first
   {
-    if((tx.binary & (1ULL<<63)) != 0) // check MSB
+    uint8_t ledstate = (tx.binary & (1ULL<<63)) != 0 ? 1 : 0; // MSB
+    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
+    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
+    if(ledstate != 0)
       PORTB |= LED; // LED ON
     else
       PORTB &= ~LED; // LED off
     while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
     TIFR = 1<<TOV0; // reset timer overflow interrupt flag
     PINB = LED; // invert the led and wait again -> manchester encoding
-    while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
-    TIFR = 1<<TOV0; // reset timer overflow interrupt flag
     tx.binary <<= 1; // shift next bit
   }
+  while((TIFR & (1<<TOV0)) == 0); // wait for interrupt flag
+  TIFR = 1<<TOV0; // reset timer overflow interrupt flag
   PORTB &= ~LED; // led OFF
 }
 
