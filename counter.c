@@ -19,6 +19,7 @@ enum
 { 
   EEPROM_BYTES = 512, // eeprom size in bytes, see datasheet
   N_CHANNELS = 4, // number of channels to track
+  N_RETRANSMIT = 1, // how many times to re-transmit the message
 };
 
 // counter data struct
@@ -42,7 +43,6 @@ union packet
 {
   struct
   {
-    // uint64_t preamble:16, unknown:4, serial:20, data:8, crc:16;
     uint64_t crc:16, data:8, serial:20, unknown:4, preamble:16;
   };
   uint64_t binary;
@@ -173,14 +173,16 @@ void transmit(uint8_t i)
   // Construct the 64-bit TX packet
   tx.preamble = ~0xFFFE;
   tx.unknown = 0x7;
-  tx.serial = 0x55664L;
-  tx.data = 0x3F;
-  tx.crc = 0x277D;
+  // tx.serial = 0x55664L;
+  // tx.data = 0x3F;
+  // tx.crc = 0x277D;
+  tx.serial = ~(counter->c[i]);
+  tx.data = ~0;
   update_crc(&tx);
 
   // use timer0 
   TCNT0 = 0;
-  OCR0A = 140; // ms
+  OCR0A = 140; // us
   TCCR0A = 2; // ctc mode - TCNT0 runs from 0 to OCR0A
   TCCR0B = 1; // prescaler 1 (clk), 2 (clk/8), 3 (clk/64), 4 (clk/256), 5 (clk/1024)
  
@@ -194,10 +196,10 @@ void transmit(uint8_t i)
     while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
     TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
     PORTB = ledstate;
+    tx.binary <<= 1; // shift next bit
     while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
     TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
     PINB = LED; // invert the led and wait again -> manchester encoding
-    tx.binary <<= 1; // shift next bit
   }
   while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
   TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
@@ -215,16 +217,17 @@ void update_pin_state()
   }
 }
 
-void delay(uint8_t n)
+// delay = n * 100 us
+void delay(uint16_t x100us)
 {
   uint8_t j;
   TCNT0 = 0;
-  OCR0A = 120;
+  OCR0A = 100; // us
   TCCR0A = 2;
   TCCR0B = 1; // prescaler 4 (clk/256), 5 (clk/1024)
  
   TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
-  for(j = 0; j < n; j++)
+  for(j = 0; j < x100us; j++)
   {
     while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
     TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
@@ -250,10 +253,8 @@ void main()
  DDRB = LED; // only LED output, other pins input
  PORTB = INPUT; // pullup enable on input pins, led OFF
 
- #if 1
  find_free_record(counter);
  update_pin_state(); // read pin state from last record in eeprom
- #endif
 
  PIN_CHANGE_FLAG_CLEAR();
  PIN_CHANGE_INTERRUPT_ENABLE();
@@ -269,7 +270,7 @@ void main()
    #if 1
    uint8_t j; // loop counter
    uint8_t tx = 0; // bitmap of which counters changed and should be transmitted
-   delay(100); // time for de-bounce
+   delay(200); // 20ms time for input to stabilize and ISR to set pin_change
    while(pin_change != 0)
    {
      uint8_t change = pin_change, m = 1; // m is shifting 1-bit bitmask
@@ -281,13 +282,11 @@ void main()
        {
          counter->c[j]++;
          update_pin_state();
-         #if 1
          if( ((new_pin_state ^ pin_state) & m) != 0)
          {
            counter->c[j]++;
            update_pin_state();
          }
-         #endif
          cli();
          pin_change &= ~m; // clear pin change bit (change serviced)
          sei();
@@ -295,7 +294,7 @@ void main()
        }
        m <<= 1; // upshift mask
      }
-     delay(100); // allow for pins to change again
+     delay(200); // 20 ms wait for pins to change again
    }
 
    if(tx != 0)
@@ -304,12 +303,22 @@ void main()
      for(j = 0; j < N_CHANNELS; j++)
      {
        if( (tx & 1) != 0 )
-         transmit(j);
+       {
+         PORTB |= LED; // wake up the transmitter
+         delay(1);
+         PORTB &= ~LED;
+         int i;
+         for(i = 0; i < N_RETRANSMIT; i++)
+         {
+           delay(200);
+           transmit(j);
+         }
+       }
        tx >>= 1;
      }
    }
    #else
-   // this works for single input
+   // this works for single counter
    counter->c[0]++;
    store_counter();
    transmit(0);
