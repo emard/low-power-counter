@@ -19,7 +19,7 @@ enum
 { 
   EEPROM_BYTES = 512, // eeprom size in bytes, see datasheet
   N_CHANNELS = 4, // number of channels to track
-  N_RETRANSMIT = 1, // how many times to re-transmit the message
+  N_RETRANSMIT = 3, // how many times to re-transmit the message
 };
 
 // counter data struct
@@ -177,7 +177,7 @@ void transmit(uint8_t i)
   // tx.data = 0x3F;
   // tx.crc = 0x277D;
   tx.serial = ~(counter->c[i]);
-  tx.data = ~0;
+  tx.data = ~i;
   update_crc(&tx);
 
   // use timer0 
