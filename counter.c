@@ -35,7 +35,10 @@ enum
   N_RECORDS = EEPROM_BYTES/sizeof(struct record),
 };
 
-struct record EEMEM memory[N_RECORDS]; // storage in EEPROM
+struct record EEMEM memory[N_RECORDS] = // storage in EEPROM
+{
+   { { 0,0,0,0, }, }, // initial counter values after flashing
+};
 
 struct record counter[1]; // one record as counter in RAM
 
