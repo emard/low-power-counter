@@ -183,7 +183,7 @@ void transmit(uint8_t i)
 
   // use timer0 
   TCNT0 = 0;
-  OCR0A = 140; // us
+  OCR0A = 135; // us (nomial value 140 us)
   TCCR0A = 2; // ctc mode - TCNT0 runs from 0 to OCR0A
   TCCR0B = 1; // prescaler 1 (clk), 2 (clk/8), 3 (clk/64), 4 (clk/256), 5 (clk/1024)
  
@@ -225,7 +225,7 @@ void delay(uint16_t x100us)
   TCNT0 = 0;
   OCR0A = 100; // us
   TCCR0A = 2;
-  TCCR0B = 1; // prescaler 4 (clk/256), 5 (clk/1024)
+  TCCR0B = 1; // prescaler 1 (clk)
  
   TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
   for(j = 0; j < x100us; j++)
@@ -300,19 +300,22 @@ void main()
 
    if(tx != 0)
    {
+     PORTB |= LED; // wake up the transmitter
+     delay(1); // 0.1 ms pulse wakeup starts
+     PORTB &= ~LED;
      store_counter();
+     // delay(100); // wait until transmitter wakes up completely
      for(j = 0; j < N_CHANNELS; j++)
      {
        if( (tx & 1) != 0 )
        {
-         PORTB |= LED; // wake up the transmitter
-         delay(2); // 200 us pulse
-         PORTB &= ~LED;
          int i;
          for(i = 0; i < N_RETRANSMIT; i++)
          {
-           delay(150); // 15 ms spacing between retransmission
+           delay(200); // 20 ms spacing between retransmissions
+           cli();
            transmit(j);
+           sei();
          }
        }
        tx >>= 1;
