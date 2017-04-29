@@ -305,12 +305,12 @@ void main()
        if( (tx & 1) != 0 )
        {
          PORTB |= LED; // wake up the transmitter
-         delay(1);
+         delay(2); // 200 us pulse
          PORTB &= ~LED;
          int i;
          for(i = 0; i < N_RETRANSMIT; i++)
          {
-           delay(200);
+           delay(150); // 15 ms spacing between retransmission
            transmit(j);
          }
        }
