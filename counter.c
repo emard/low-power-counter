@@ -20,6 +20,7 @@ enum
   EEPROM_BYTES = 512, // eeprom size in bytes, see datasheet
   N_CHANNELS = 4, // number of channels to track
   N_RETRANSMIT = 3, // how many times to re-transmit the message
+  DEBOUNCE = 1000, // x100 us debounce time 200->20ms, 1000->0.1s
 };
 
 // counter data struct
@@ -270,7 +271,7 @@ void main()
    #if 1
    uint8_t j; // loop counter
    uint8_t tx = 0; // Bitmap having '1' for each counter changed. Used ad request to transmit
-   delay(200); // 20ms time for input to stabilize and ISR to set pin_change
+   delay(DEBOUNCE); // wait for input to stabilize and ISR to set pin_change
    while(pin_change != 0)
    {
      uint8_t change = pin_change, m = 1; // m is shifting 1-bit bitmask
@@ -294,7 +295,7 @@ void main()
        }
        m <<= 1; // upshift mask
      }
-     delay(200); // 20 ms wait for pins to change again
+     delay(DEBOUNCE); // wait for pins to change again
    }
 
    if(tx != 0)
