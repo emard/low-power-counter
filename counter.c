@@ -221,7 +221,7 @@ void update_pin_state()
 // delay = n * 100 us
 void delay(uint16_t x100us)
 {
-  uint8_t j;
+  uint16_t j;
   TCNT0 = 0;
   OCR0A = 100; // us
   TCCR0A = 2;
