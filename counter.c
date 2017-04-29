@@ -8,6 +8,7 @@
 
 #define LED (1<<PB4)
 #define INPUT ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
+#define PULLUP ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
 #define INTERRUPT_PINS ((1<<PCINT0)|(1<<PCINT1)|(1<<PCINT2)|(1<<PCINT3))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
@@ -196,7 +197,7 @@ void transmit(uint8_t i)
   for(j = 0; j < 64; j++) // send 64-bit packet manchester encoded, MSB first
   {
     // calculate LED output state in advance
-    uint8_t ledstate = (tx.binary & (1ULL<<63)) != 0 ? PORTB | INPUT | LED : (PORTB | INPUT) & ~LED; // MSB
+    uint8_t ledstate = (tx.binary & (1ULL<<63)) != 0 ? PORTB | PULLUP | LED : (PORTB | PULLUP) & ~LED; // MSB
     while((TIFR & (1<<OCF0A)) == 0); // wait for interrupt flag
     TIFR = 1<<OCF0A; // reset timer overflow interrupt flag
     PORTB = ledstate;
@@ -255,7 +256,7 @@ void main()
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
  
  DDRB = LED; // only LED output, other pins input
- PORTB = INPUT; // pullup enable on input pins, led OFF
+ PORTB = PULLUP; // pullup enable on input pins, led OFF
 
  find_free_record(counter);
  update_pin_state(); // read pin state from last record in eeprom
