@@ -30,7 +30,7 @@ Chip ATTINY85V layout
        OUT |3      6| IN1
        GND |4      5| IN0
 
-Too fast events >0.5Hz will not be counted, for example mechanical
+Too fast events >10Hz will not be counted, for example mechanical
 contact ringing of the input switch will be filtered out.
 
 After each input pulse, new counter state is sent over
