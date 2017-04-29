@@ -172,12 +172,12 @@ void transmit(uint8_t i)
 
   // Construct the 64-bit TX packet
   tx.preamble = ~0xFFFE;
-  tx.unknown = 0x7;
+  tx.unknown = ~i;
   // tx.serial = 0x55664L;
   // tx.data = 0x3F;
   // tx.crc = 0x277D;
   tx.serial = ~(counter->c[i]);
-  tx.data = ~i;
+  tx.data = ~0;
   update_crc(&tx);
 
   // use timer0 
@@ -269,7 +269,7 @@ void main()
  {
    #if 1
    uint8_t j; // loop counter
-   uint8_t tx = 0; // bitmap of which counters changed and should be transmitted
+   uint8_t tx = 0; // Bitmap having '1' for each counter changed. Used ad request to transmit
    delay(200); // 20ms time for input to stabilize and ISR to set pin_change
    while(pin_change != 0)
    {
@@ -290,7 +290,7 @@ void main()
          cli();
          pin_change &= ~m; // clear pin change bit (change serviced)
          sei();
-         tx |= m; // transmit this bit
+         tx |= m; // request to transmit this bit
        }
        m <<= 1; // upshift mask
      }
