@@ -40,15 +40,17 @@ Output is intended to be connected to a simple
 on-off keying (OOK) 433 MHz transmitter and received remotely with
 some general-purpose receiver like
 [rtl_433](https://github.com/merbanan/rtl_433.git)
+(mostly compatible with honeywell.c protocol decoder)
 see also
 [ArduinoWeatherOS](https://github.com/robwlakes/ArduinoWeatherOS)
 
 # Power saving issues
 
 When designing the circuit take into account that every current flow
-draws some power, so for example when internal pull up resistors
+draws some power, so for example when internal pull-up resistors
 in the chip are enabled, each input connected to GND will draw about 
-80uA.
+80uA. Option is to disable internal pull-up and connect external
+1Mohm pull-up resistor.
 
 During 3V battery life, voltage will drop down to about 2V.
 Low-voltage version of the chip "ATTINY85V" is recommended
@@ -58,8 +60,8 @@ seems to work at 2V though.
 
 The output transmitter should also be designed to work with
 battery voltage below 2V and have low power mode when idle.
+SYN115 433MHZ ASK Transmitter Module works well.
 
 # Todo
 
-    [ ] Make protocol compatible with honeywell.c from rtl_433
     [ ] Reset all counters with nRESET
