@@ -43,6 +43,7 @@ some general-purpose receiver like
 (mostly compatible with honeywell.c protocol decoder)
 see also
 [ArduinoWeatherOS](https://github.com/robwlakes/ArduinoWeatherOS)
+about Manchester protocol encoding.
 
 # Power saving issues
 
