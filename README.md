@@ -50,8 +50,10 @@ about Manchester protocol encoding.
 When designing the circuit take into account that every current flow
 draws some power, so for example when internal pull-up resistors
 in the chip are enabled, each input connected to GND will draw about 
-80uA. Option is to disable internal pull-up and connect external
-1Mohm pull-up resistor.
+80uA which can drain CR2032 battery in 3 months.
+Option is to disable internal pull-up and connect external
+1Mohm pull-up resistor. It will draw 3uA per grounded input pin,
+but will also be more sensitive to environmental electric noise.
 
 During 3V battery life, voltage will drop down to about 2V.
 Low-voltage version of the chip "ATTINY85V" is recommended
