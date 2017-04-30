@@ -8,7 +8,7 @@
 
 #define LED (1<<PB4)
 #define INPUT ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
-#define PULLUP ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
+#define PULLUP ((1<<PB0)|(1<<PB1)|(1<<PB2)|(0<<PB3))
 #define INTERRUPT_PINS ((1<<PCINT0)|(1<<PCINT1)|(1<<PCINT2)|(1<<PCINT3))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
@@ -20,7 +20,9 @@ enum
 { 
   EEPROM_BYTES = 512, // eeprom size in bytes, see datasheet
   N_CHANNELS = 4, // number of channels to track
-  N_RETRANSMIT = 3, // how many times to re-transmit the message
+  N_RETRANSMIT = 50, // how many times to re-transmit the message
+  RETRANSMIT_DELAY1 = 200, // x100 us delay after first and subseqent odd retransmission 200->20ms
+  RETRANSMIT_DELAY2 = 200, // x100 us delay after second and subsequent even retransmission 5000->500ms
   DEBOUNCE = 1000, // x100 us debounce time 200->20ms, 1000->0.1s
 };
 
@@ -38,7 +40,7 @@ enum
 
 struct record EEMEM memory[N_RECORDS] = // storage in EEPROM
 {
-   { { 0,0,0,0, }, }, // initial counter values after flashing
+   { { 0,0,0,23*20, }, }, // initial counter values after flashing
 };
 
 struct record counter[1]; // one record as counter in RAM
@@ -316,7 +318,8 @@ void main()
          int i;
          for(i = 0; i < N_RETRANSMIT; i++)
          {
-           delay(200); // 20 ms spacing between retransmissions
+           // spacing between retransmissions
+           delay( (i & 1) == 0 ? RETRANSMIT_DELAY1 : RETRANSMIT_DELAY2); // 20/500 ms delay
            cli();
            transmit(j);
            sei();
