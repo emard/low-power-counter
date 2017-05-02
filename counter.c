@@ -11,7 +11,8 @@
 #define PULLUP ((1<<PB0)|(1<<PB1)|(1<<PB2)|(0<<PB3))
 #define INTERRUPT_PINS ((1<<PCINT0)|(1<<PCINT1)|(1<<PCINT2)|(1<<PCINT3))
 
-#define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before power-off)
+#define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before sleep)
+#define ADC_ENABLE() (ADCSRA |= (1<<ADEN)) // enable ADC (after sleep)
 #define PIN_CHANGE_INTERRUPT_ENABLE() (GIMSK |= (1<<PCIE))
 #define PIN_CHANGE_MONITOR(n) (PCMSK = n) // example: use (PCINT2 | PCINT3) to monitor PB2 and PB3 
 #define PIN_CHANGE_FLAG_CLEAR() (GIFR = PCIF)
@@ -30,6 +31,7 @@ enum
 struct record
 {
   int32_t c[N_CHANNELS];
+  uint8_t v; // battery voltage
 };
 
 // calculate how many records can we store
@@ -40,7 +42,7 @@ enum
 
 struct record EEMEM memory[N_RECORDS] = // storage in EEPROM
 {
-   { { 0,0,0,23*20, }, }, // initial counter values after flashing
+   { { 0,0,0,23*20, }, 1}, // initial counter values after flashing, battery voltage nonzero
 };
 
 struct record counter[1]; // one record as counter in RAM
@@ -138,6 +140,7 @@ void store_counter()
    j = 0;
  // create 0-delimiter
  struct record delimiter[1];
+ delimiter->v = 0;
  for(k = 0; k < N_CHANNELS; k++)
    delimiter->c[k] = 0;
  // write 0-delimiter to next position
@@ -183,8 +186,8 @@ void transmit(uint8_t i)
   // tx.serial = 0x55664L;
   // tx.data = 0x3F;
   // tx.crc = 0x277D;
-  tx.serial = ~(counter->c[i]);
-  tx.data = ~0;
+  tx.serial = ~(counter->c[i]); // counter value
+  tx.data = ~(counter->v); // battery voltage
   update_crc(&tx);
 
   // use timer0 
@@ -252,10 +255,11 @@ void main()
    counter_reset();
  #endif
 
- delay(16); // wait a second for power to become stable
- 
- ADC_DISABLE();
+ ADMUX = (2<<REFS0) | (1<<ADLAR) | (4<<MUX0); // ADC measure battery voltage against internal 1.1V reference
+
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
+
+ delay(10000); // wait a moment for power to become stable (switch glitch...)
  
  DDRB = LED; // only LED output, other pins input
  PORTB = PULLUP; // pullup enable on input pins, led OFF
@@ -275,9 +279,11 @@ void main()
  for(;;)
  {
    #if 1
+   ADC_ENABLE();
    uint8_t j; // loop counter
    uint8_t tx = 0; // Bitmap having '1' for each counter changed. Used ad request to transmit
    delay(DEBOUNCE); // wait for input to stabilize and ISR to set pin_change
+   ADCSRA |= 1<<ADSC; // Start measuring battery voltage
    while(pin_change != 0)
    {
      uint8_t change = pin_change, m = 1; // m is shifting 1-bit bitmask
@@ -309,6 +315,9 @@ void main()
      PORTB |= LED; // wake up the transmitter
      delay(1); // 0.1 ms pulse wakeup starts
      PORTB &= ~LED;
+     while( (ADCSRA & ADSC) != 0 ); // wait until battery voltage measurement is done 
+     // ADCL reading must be before reading ADCH
+     counter->v = ADCH; // reading ADCH unlocks both ADCL and ADCH
      store_counter();
      // delay(100); // wait until transmitter wakes up completely
      for(j = 0; j < N_CHANNELS; j++)
@@ -335,6 +344,8 @@ void main()
    transmit(0);
    #endif
 
+   ADC_DISABLE();
+ 
    cli();
    if(1 == 1)
    {
