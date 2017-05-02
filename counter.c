@@ -12,7 +12,7 @@
 #define INTERRUPT_PINS ((1<<PCINT0)|(1<<PCINT1)|(1<<PCINT2)|(1<<PCINT3))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before sleep)
-#define ADC_ENABLE() (ADCSRA |= (1<<ADEN)) // enable ADC (after sleep)
+#define ADC_ENABLE() (ADCSRA |= (1<<ADEN) | (1<<ADATE)) // enable continuous ADC (after sleep)
 #define PIN_CHANGE_INTERRUPT_ENABLE() (GIMSK |= (1<<PCIE))
 #define PIN_CHANGE_MONITOR(n) (PCMSK = n) // example: use (PCINT2 | PCINT3) to monitor PB2 and PB3 
 #define PIN_CHANGE_FLAG_CLEAR() (GIFR = PCIF)
@@ -316,7 +316,7 @@ void main()
      PORTB |= LED; // wake up the transmitter
      delay(1); // 0.1 ms pulse wakeup starts
      PORTB &= ~LED;
-     while( (ADCSRA & ADSC) != 0 ); // wait until battery voltage measurement is done 
+     // while( (ADCSRA & (1<<ADSC)) != 0 ); // wait until battery voltage measurement is done 
      // ADCL reading must be before reading ADCH
      counter->v = ADCH; // reading ADCH unlocks both ADCL and ADCH
      store_counter();
