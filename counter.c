@@ -31,7 +31,7 @@ enum
 struct record
 {
   int32_t c[N_CHANNELS];
-  uint8_t v; // battery voltage = 1.1*255/v
+  uint8_t v; // battery voltage = 1.1*255/v, 77-99 high, 100-109 medium, 110-150 low
 };
 
 // calculate how many records can we store
