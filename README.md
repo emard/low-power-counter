@@ -68,3 +68,4 @@ SYN115 433MHZ ASK Transmitter Module works well.
 # Todo
 
     [ ] Reset all counters with nRESET
+    [ ] Battery voltage monitoring
