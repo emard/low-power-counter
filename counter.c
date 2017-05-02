@@ -281,6 +281,7 @@ void main()
  {
    #if 1
    ADC_ENABLE();
+   ADCSRB = 0<<ADTS0; // for free-running mode
    uint8_t j; // loop counter
    uint8_t tx = 0; // Bitmap having '1' for each counter changed. Used ad request to transmit
    delay(DEBOUNCE); // wait for input to stabilize and ISR to set pin_change
