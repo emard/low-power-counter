@@ -255,7 +255,8 @@ void main()
    counter_reset();
  #endif
 
- ADMUX = (2<<REFS0) | (1<<ADLAR) | (4<<MUX0); // ADC measure battery voltage against internal 1.1V reference
+ ADMUX = (0<<REFS0) | (1<<ADLAR) | (12<<MUX0); // ADC measure VCC voltage against internal 1.1V reference
+ // ADLAR set to left-adjust result suitable for 8-bit reading
 
  set_sleep_mode(SLEEP_MODE_PWR_DOWN);
 
