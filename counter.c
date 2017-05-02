@@ -31,7 +31,7 @@ enum
 struct record
 {
   int32_t c[N_CHANNELS];
-  uint8_t v; // battery voltage
+  uint8_t v; // battery voltage = 1.1*255/v
 };
 
 // calculate how many records can we store
@@ -187,7 +187,7 @@ void transmit(uint8_t i)
   // tx.data = 0x3F;
   // tx.crc = 0x277D;
   tx.serial = ~(counter->c[i]); // counter value
-  tx.data = ~(counter->v); // battery voltage
+  tx.data = ~(counter->v); // battery voltage = 1.1V*255/this_value
   update_crc(&tx);
 
   // use timer0 
