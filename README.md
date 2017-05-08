@@ -47,7 +47,8 @@ about Manchester protocol encoding.
 
 # Power saving issues
 
-When designing the circuit take into account that every current flow
+When designing the [circuit](/circuit/schematics.pdf) 
+take into account that every current flow
 draws some power, so for example when internal pull-up resistors
 in the chip are enabled, each input connected to GND will draw about 
 80uA which can drain CR2032 battery in 3 months.
