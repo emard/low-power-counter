@@ -158,7 +158,7 @@ U 1 1 591033D1
 P 9800 3500
 F 0 "M1" H 9800 3750 50  0000 C CNN
 F 1 "SYN115" V 9900 3500 50  0000 C CNN
-F 2 "Connectors_Molex:Molex_KK-6410-04_04x2.54mm_Straight" H 9800 3500 50  0001 C CNN
+F 2 "Pin_Headers:Pin_Header_Straight_1x04_Pitch2.00mm" H 9800 3500 50  0001 C CNN
 F 3 "" H 9800 3500 50  0000 C CNN
 	1    9800 3500
 	1    0    0    -1  
