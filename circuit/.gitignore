@@ -1,0 +1,8 @@
+*~
+# intermediate generate netlist file
+lpcounter.net
+# intermediate files of the freeroute
+lpcounter.dsn
+lpcounter.bin
+lpcounter.ses
+lpcounter.rules
