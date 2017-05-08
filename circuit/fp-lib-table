@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name Battery_Holders)(type Github)(uri "$(KIGITHUB)/Battery_Holders.pretty")(options "")(descr ""))
+)
