@@ -8,7 +8,7 @@
 
 #define LED (1<<PB4)
 #define INPUT ((1<<PB0)|(1<<PB1)|(1<<PB2)|(1<<PB3))
-#define PULLUP ((1<<PB0)|(1<<PB1)|(1<<PB2)|(0<<PB3))
+#define PULLUP ((0<<PB0)|(0<<PB1)|(0<<PB2)|(0<<PB3))
 #define INTERRUPT_PINS ((1<<PCINT0)|(1<<PCINT1)|(1<<PCINT2)|(1<<PCINT3))
 
 #define ADC_DISABLE() (ADCSRA &= ~(1<<ADEN)) // disable ADC (before sleep)
